@@ -13,10 +13,21 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
 /**
  * @ORM\Entity(repositoryClass=InvoiceRepository::class)
  * @ApiResource(
+ *  subresourceOperations={"api_customers_invoices_get_subresource"={"normalization_context"={"groups"={"invoices_subresource"}}}},
  *  attributes={
  *      "pagination_enabled"=true,
  *      "pagination_items_per_page"=20,
  *      "order": {"sentAt":"desc"}
+ *  },
+ *  itemOperations={"GET", "PUT", "DELETE", "PATCH", "increment"={
+ *      "method"="POST", 
+ *      "path"="/invoices/{id}/increment", 
+ *      "controller"="App\Controller\InvoiceIncrementationController",
+ *      "openapi_context"={
+ *          "summary"="Increment an invoice",
+ *          "description"="Increment an invoice chrono"
+ *      }
+ *    }
  *  },
  *  normalizationContext={"groups"={"invoices_read"}}
  * )
@@ -28,25 +39,25 @@ class Invoice
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"invoices_read", "customers_read"})
+     * @Groups({"invoices_read", "customers_read", "invoices_subresource"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="float")
-     * @Groups({"invoices_read", "customers_read"})
+     * @Groups({"invoices_read", "customers_read", "invoices_subresource"})
      */
     private $amount;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"invoices_read", "customers_read"})
+     * @Groups({"invoices_read", "customers_read", "invoices_subresource"})
      */
     private $sentAt;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"invoices_read", "customers_read"})
+     * @Groups({"invoices_read", "customers_read", "invoices_subresource"})
      */
     private $status;
 
@@ -59,13 +70,13 @@ class Invoice
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"invoices_read", "customers_read"})
+     * @Groups({"invoices_read", "customers_read", "invoices_subresource"})
      */
     private $chrono;
 
     /**
      * Retrieve the user that own the invoice
-     * @Groups({"invoices_read"})
+     * @Groups({"invoices_read", "invoices_subresource"})
      * @return User
      */
     public function getUser(): User
