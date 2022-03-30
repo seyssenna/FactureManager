@@ -1,75 +1,53 @@
 import React, { useEffect, useState } from 'react';
+import axios from "axios";
 import Pagination from '../components/Pagination';
-import CustomersAPI from '../services/CustomersAPI';
 
-const CustomersPage = (props) => {
+
+// 
+// Manage Pagination with API Platform
+// 
+const CustomersPageWithPagination = (props) => {
 
     const [customers, setCustomers] = useState([]);
+    const [totalItems, setTotalItems] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const [search, setSearch] = useState("");
-
     const itemsPerPage = 10;
 
-    // Retrieve customers
-    const fetchCustomers = async () => {
-        try {
-            const data = await CustomersAPI.findAll();
-            setCustomers(data);
-        } catch (error) {
-            console.log(error.response);
-        }
-    }
-
-    // Retrieve customers on component loading
     useEffect(() => {
-        fetchCustomers();
-    }, []);
+        axios
+            .get(`http://127.0.0.1:8000/api/customers?pagination=true&count=${itemsPerPage}&page=${currentPage}`)
+            .then(response => {
+                setCustomers(response.data["hydra:member"]);
+                setTotalItems(response.data["hydra:totalItems"]);
+            })
+            .catch(error => console.log(error.response));
+    }, [currentPage]);
 
-    // Delete customer
-    const handleDelete = async (id) => {
+    const handleDelete = (id) => {
         const originalCustomers = [...customers];
-
         // Approche optimiste
         setCustomers(customers.filter(customer => customer.id !== id));
-        
         // Approche pessimiste
-        try{
-            await CustomersAPI.delete(id);
-        } catch (error) {
-            setCustomers(originalCustomers); 
-        }
+        axios
+            .delete("http://127.0.0.1:8000/api/customers/" + id)
+            .then(response => console.log(response))
+            .catch(error => { 
+                setCustomers(originalCustomers); 
+                console.log(error.response)
+            });
     };
 
-    // Manage page changing
     const handlePageChange = (page) => {
         setCurrentPage(page);
-    };
+    }
 
-    // Retrive input value to search for filter
-    const handleSearch = event => {
-        setSearch(event.currentTarget.value);
-        setCurrentPage(1);
-    };
-
-    // Manage search filter
-    const filteredCustomers = customers.filter(
-        customer => 
-            customer.firstName.toLowerCase().includes(search.toLowerCase()) || 
-            customer.lastName.toLowerCase().includes(search.toLowerCase()) ||
-            customer.email.toLowerCase().includes(search.toLowerCase()) ||
-            (customer.company && customer.company.toLowerCase().includes(search.toLowerCase()))
-    );
     
-    // Manage data pagination
-    const paginatedCustomers = Pagination.getData(filteredCustomers, currentPage, itemsPerPage);
+    
+    const paginatedCustomers = Pagination.getData(customers, currentPage, itemsPerPage);
 
     return ( 
         <>
-            <h1>Liste des clients</h1>
-
-            <div className="form-group">
-                <input type="text" onChange={handleSearch} value={search} className="form-control" placeholder="Rechercher. . ."/>
-            </div>
+            <h1>Liste des clients (Pagination)</h1>
 
             <table className="table table-hover">
                 <thead>
@@ -84,7 +62,8 @@ const CustomersPage = (props) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {paginatedCustomers.map(customer => 
+                    {customers.length ===0 && (<tr><td>Chargement . . .</td></tr>)}
+                    {customers.map(customer => 
                         <tr key={customer.id}>
                             <td>{customer.id}</td>
                             <td><a href="#">{customer.firstName} {customer.lastName}</a></td>
@@ -107,15 +86,10 @@ const CustomersPage = (props) => {
                 </tbody>
             </table>
             
-            { itemsPerPage < filteredCustomers.length && <Pagination 
-                currentPage={currentPage} 
-                itemsPerPage={itemsPerPage} 
-                length={filteredCustomers.length} 
-                onPageChanged={handlePageChange} />
-            }
+            <Pagination currentPage={currentPage} itemsPerPage={itemsPerPage} length={totalItems} onPageChanged={handlePageChange} />
             
         </> 
     );
 }
  
-export default CustomersPage;
+export default CustomersPageWithPagination;
