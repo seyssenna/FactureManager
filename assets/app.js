@@ -9,30 +9,45 @@
 import './styles/app.css';
 // start the Stimulus application
 import './bootstrap';
-import React from 'react';
+import React, {useState} from 'react';
 import ReactDOM from 'react-dom';
 import 'bootswatch/dist/litera/bootstrap.min.css';
 import Navbar from "./js/components/Navbar";
 import HomePage from './js/pages/HomePage';
-import { HashRouter, Switch, Route } from 'react-router-dom';
+import { HashRouter, Switch, Route, withRouter } from 'react-router-dom';
 import CustomersPage from './js/pages/CustomersPage';
 import InvoicesPage from './js/pages/InvoicesPage';
+import LoginPage from './js/pages/LoginPage';
+import AuthAPI from './js/services/AuthAPI';
+import AuthContext from './js/contexts/AuthContext';
 import CustomersPageWithPagination from './js/pages/CustomersPageWithPagination';
+import PrivateRoute from './js/components/PrivateRoute';
 
+AuthAPI.setup();
 
 const App = () => {
+
+    const [isAuthenticated, setIsAuthenticated] = useState(AuthAPI.isAuthenticated(isAuthenticated));
+    const NavbarWithRouter = withRouter(Navbar);
+
     return (
-        <HashRouter>
-            <Navbar />
-        
-            <main className='container pt-5'>
-                <Switch>
-                    <Route path="/invoices" component={InvoicesPage} /> 
-                    <Route path="/customers" component={CustomersPage} />
-                    <Route path="/" component={HomePage} />
-                </Switch>
-            </main>
-        </HashRouter>
+        <AuthContext.Provider value={{
+            isAuthenticated: isAuthenticated,
+            setIsAuthenticated: setIsAuthenticated
+        }}>
+            <HashRouter>
+                <NavbarWithRouter />
+            
+                <main className='container pt-5'>
+                    <Switch>
+                        <Route path="/login" component={LoginPage} /> 
+                        <PrivateRoute path="/invoices" component={InvoicesPage} /> 
+                        <PrivateRoute path="/customers" component={CustomersPage} />
+                        <Route path="/" component={HomePage} />
+                    </Switch>
+                </main>
+            </HashRouter>
+        </AuthContext.Provider>
     )
 };
 
