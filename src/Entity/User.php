@@ -53,7 +53,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"customers_read", "invoices_read", "invoices_subresource", "users_read"})
-     * @Assert\NotBlank(message="Le prénom est obligatoire")
      * @Assert\Length(min=2, minMessage="Le prénom doit contenir entre 2 et 255 caractères", max=255, maxMessage="Le prénom doit contenir entre 2 et 255 caractères")
      */
     private $firstName;
@@ -61,7 +60,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @ORM\Column(type="string", length=255)
      * @Groups({"customers_read", "invoices_read", "invoices_subresource", "users_read"})
-     * @Assert\NotBlank(message="Le nom est obligatoire")
      * @Assert\Length(min=2, minMessage="Le nom doit contenir entre 2 et 255 caractères", max=255, maxMessage="Le nom doit contenir entre 2 et 255 caractères")
      */
     private $lastName;
