@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Pagination from '../components/Pagination';
-import InvoicesAPI from '../services/invoicesAPI';
+import InvoicesAPI from '../services/InvoicesAPI';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';

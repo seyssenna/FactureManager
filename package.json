@@ -28,7 +28,7 @@
         "react-router-dom": "^5.0.0",
         "react-toastify": "^8.2.0"
     },
-    "engines": { 
-        "node": "16.x" 
-      } 
+    "engines": {
+        "node": "16.x"
+    }
 }
