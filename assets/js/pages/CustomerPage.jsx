@@ -25,7 +25,7 @@ const CustomerPage = (props) => {
 
     const [editing, setEditing] = useState(false);
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     // Retrieve customer to update using id
     const fetchCustomer = async id => {

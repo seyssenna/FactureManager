@@ -7,6 +7,7 @@ import axios from 'axios';
 import InvoicesAPI from '../services/invoicesAPI';
 import { toast } from 'react-toastify';
 import TableLoader from '../components/loaders/TableLoader';
+import { INVOICES_API_URL } from '../config';
 
 const InvoicePage = (props) => {
 
@@ -48,7 +49,7 @@ const InvoicePage = (props) => {
     // Retrive invoice to updtate
     const fetchInvoice = async (id) => {
         try {
-            const data = await axios.get("http://localhost:8000/api/invoices/" + id).then(response => response.data);   
+            const data = await axios.get( INVOICES_API_URL + "/" + id).then(response => response.data);   
             // const data = await InvoicesAPI.find(id);
             const { amount, status, customer } = data;
             setInvoice({ amount, status, customer: customer.id });
@@ -85,11 +86,11 @@ const InvoicePage = (props) => {
 
         try {
             if (editing) {
-                const response = await axios.put("http://localhost:8000/api/invoices/" + id, {...invoice, customer: `/api/customers/${invoice.customer}`});
+                const response = await axios.put(INVOICES_API_URL + "/" + id, {...invoice, customer: `/api/customers/${invoice.customer}`});
                 // await InvoicesAPI.update(id, invoice);
                 toast.success("La facture a bien été modifiée");
             } else {
-                const response = await axios.post("http://localhost:8000/api/invoices", {...invoice, customer: `/api/customers/${invoice.customer}`});
+                const response = await axios.post(INVOICES_API_URL, {...invoice, customer: `/api/customers/${invoice.customer}`});
                 // await InvoicesAPI.create(invoice);
                 toast.success("La facture a bien été enregistrée");
                 props.history.replace("/invoices");
