@@ -4,7 +4,7 @@ import Select from '../components/forms/Select';
 import { Link } from 'react-router-dom';
 import CustomersAPI from '../services/CustomersAPI';
 import axios from 'axios';
-import InvoicesAPI from '../services/invoicesAPI';
+// import InvoicesAPI from '../services/invoicesAPI';
 import { toast } from 'react-toastify';
 import TableLoader from '../components/loaders/TableLoader';
 import { INVOICES_API_URL } from '../config';
