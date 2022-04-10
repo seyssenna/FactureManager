@@ -3,6 +3,8 @@ import Pagination from '../components/Pagination';
 import InvoicesAPI from '../services/invoicesAPI';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import TableLoader from '../components/loaders/TableLoader';
 
 const STATUS_CLASSES = {
     PAID: "success",
@@ -21,6 +23,7 @@ const InvoicesPage = (props) => {
     const [invoices, setinvoices] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [search, setSearch] = useState("");
+    const [loading, setLoading] = useState(true);
 
     const itemsPerPage = 10;
 
@@ -29,8 +32,9 @@ const InvoicesPage = (props) => {
         try {
             const data = await InvoicesAPI.findAll();
             setinvoices(data);
+            setLoading(false)
         } catch (error) {
-            console.log(error);
+            toast.error("Erreur lors du chargement des factures !");
         }
         
     }
@@ -49,10 +53,9 @@ const InvoicesPage = (props) => {
         // Approche pessimiste
         try{
             await InvoicesAPI.delete(id);
-            console.log("ok");
+            toast.success("La facture a bien été supprimée !");
         } catch (error) {
-            console.log(error);
-            console.log("ko");
+            toast.error("Une erreur est survenue !");
             setinvoices(originalinvoices); 
         }
     };
@@ -111,7 +114,7 @@ const InvoicesPage = (props) => {
                 <tbody>
                     {paginatedInvoices.map(invoice => <tr key={invoice.id}>
                         <td>{invoice.chrono}</td>
-                        <td><a href="#">{invoice.customer.firstName} {invoice.customer.lastName}</a></td>
+                        <td><Link to={"/customers/" + invoice.customer.id}>{invoice.customer.firstName} {invoice.customer.lastName}</Link></td>
                         <td>{invoice.customer.company}</td>
                         <td className="text-center">{formatDate(invoice.sentAt)}</td>
                         <td className="text-center"><span className={"badge bg-" + STATUS_CLASSES[invoice.status]}>{STATUS_LABELS[invoice.status]}</span></td>
@@ -120,10 +123,10 @@ const InvoicesPage = (props) => {
                             <Link to={"/invoices/" + invoice.id} className="btn btn-sm btn-primary me-1">Editer</Link>
                             <button onClick={() => handleDelete(invoice.id)} className="btn btn-sm btn-danger">Supprimer</button>
                         </td>
-                    </tr>)}
-                    
+                    </tr>)}  
                 </tbody>
             </table>
+            {loading && <TableLoader />}
             <Pagination currentPage={currentPage} itemsPerPage={itemsPerPage} onPageChanged={handlePageChange} length={filteredInvoices.length} />
         </> 
     );

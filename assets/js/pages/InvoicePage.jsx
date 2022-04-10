@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import CustomersAPI from '../services/CustomersAPI';
 import axios from 'axios';
 import InvoicesAPI from '../services/invoicesAPI';
+import { toast } from 'react-toastify';
+import TableLoader from '../components/loaders/TableLoader';
 
 const InvoicePage = (props) => {
 
@@ -24,18 +26,22 @@ const InvoicePage = (props) => {
 
     const [customers, setCustomers] = useState([]);
 
-    const [editing, setEditing] = useState(false)
+    const [editing, setEditing] = useState(false);
+
+    const [loading, setLoading] = useState(true);
 
     // Retrieve customers list
     const fetchCustomers = async ()=> {
         try {
             const data = await CustomersAPI.findAll();
             setCustomers(data);
+            setLoading(false);
             if (!invoice.customer && id === "new") {
                 setInvoice({...invoice, customer: data[0].id});
             }
         } catch (error) {
-            console.log(error.response);
+            toast.error("Une erreur est survenue, impossible de charger les clients");
+            props.history.replace("/invoices");
         };
     };
 
@@ -46,8 +52,10 @@ const InvoicePage = (props) => {
             // const data = await InvoicesAPI.find(id);
             const { amount, status, customer } = data;
             setInvoice({ amount, status, customer: customer.id });
+            setLoading(false);
         } catch (error) {
-            console.log(error.response)
+            toast.error("Une erreur est survenue, impossible de charger la facture demandée");
+            props.history.replace("/invoices");
         }
     }
 
@@ -79,12 +87,11 @@ const InvoicePage = (props) => {
             if (editing) {
                 const response = await axios.put("http://localhost:8000/api/invoices/" + id, {...invoice, customer: `/api/customers/${invoice.customer}`});
                 // await InvoicesAPI.update(id, invoice);
-                // TODO : success flash notification
-                console.log(response);
+                toast.success("La facture a bien été modifiée");
             } else {
                 const response = await axios.post("http://localhost:8000/api/invoices", {...invoice, customer: `/api/customers/${invoice.customer}`});
                 // await InvoicesAPI.create(invoice);
-                // TODO : success flash notification
+                toast.success("La facture a bien été enregistrée");
                 props.history.replace("/invoices");
             }
         } catch (error) {
@@ -94,7 +101,7 @@ const InvoicePage = (props) => {
                     apiErrors[violation.propertyPath] = violation.message;
                 });
                 setErrors(apiErrors);
-                // TODO : errors flash notifcation
+                toast.error("Des erreurs dans votre formulaire");
             };
         }
     }
@@ -102,7 +109,10 @@ const InvoicePage = (props) => {
     return ( 
         <>
             {editing ? <h1>Modification du client</h1> : <h1>Création d'une facture</h1>}
-            <form onSubmit={handleSubmit}>
+
+            {loading && <TableLoader />}
+
+            {!loading && <form onSubmit={handleSubmit}>
                 <Field name="amount" type="number" placeholder="Montant de la facture" label="Montant" onChange={handleChange} value={invoice.amount} error={errors.amount} />
 
                 <Select name="customer" label="Client" value={invoice.customer} error={errors.customer} onChange={handleChange}>
@@ -121,7 +131,7 @@ const InvoicePage = (props) => {
                     <button type="submit" className="btn btn-success">Enregistrer</button>
                     <Link to="/invoices" className="btn btn-link" >Retour aux factures</Link>
                 </div>
-            </form>   
+            </form> }  
         </> 
     );
 }

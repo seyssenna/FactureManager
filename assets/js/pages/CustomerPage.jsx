@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Field from '../components/forms/Field';
 import { Link } from 'react-router-dom';
 import CustomersAPI from '../services/CustomersAPI';
+import { toast } from 'react-toastify';
+import TableLoader from '../components/loaders/TableLoader';
 
 const CustomerPage = (props) => {
 
@@ -23,14 +25,16 @@ const CustomerPage = (props) => {
 
     const [editing, setEditing] = useState(false);
 
+    const [loading, setLoading] = useState(true);
+
     // Retrieve customer to update using id
     const fetchCustomer = async id => {
         try {
             const { firstName, lastName, email, company } = await CustomersAPI.find(id)
             setCustomer({ firstName, lastName, email, company});
+            setLoading(false);
         } catch (error) {
-            console.log(error.response);
-            // TODO : errors flash notification
+            toast.error("Le client n'a pas pu être chargé");
             props.history.replace("/customers");
         }    
     }
@@ -38,6 +42,7 @@ const CustomerPage = (props) => {
     // Load customer to update on component loading
     useEffect(() => {
         if (id !== "new") {
+            setLoading(true);
             setEditing(true);
             fetchCustomer(id);
         };
@@ -55,15 +60,16 @@ const CustomerPage = (props) => {
         event.preventDefault();
 
         try {
+            setErrors({});
             if (editing) {
                 await CustomersAPI.update(id, customer);
-                console.log(response.data);
+                toast.success("Le client a bien été modifié");
             } else {
                 await CustomersAPI.create(customer);
-                // TODO : success flash notification
+                toast.success("Le client a bien créé");
                 props.history.replace("/customer");
             }
-            setErrors({});
+            
         } catch (error) {
             if (error.response.data.violations) {
                 const apiErrors = {};
@@ -71,7 +77,7 @@ const CustomerPage = (props) => {
                     apiErrors[violation.propertyPath] = violation.message;
                 });
                 setErrors(apiErrors);
-                // TODO : errors flash notifcation
+                toast.error("Des erreurs dans votre formulaire !");
             };
         }
         
@@ -80,7 +86,9 @@ const CustomerPage = (props) => {
     return ( <>
         {(!editing ? <h1>Création d'un client</h1> : <h1>Modification d'un client</h1>)}
 
-        <form onSubmit={handleSubmit}>
+        {loading && <TableLoader />}
+
+        {!loading && <form onSubmit={handleSubmit}>
             <Field name="lastName" label="Nom de famille" placeholder="Nom de famille du client" value={customer.lastName} onChange={handleChange} error={errors.lastName} />
             <Field name="firstName" label="Prénom" placeholder="Prénom du client" value={customer.firstName} onChange={handleChange} error={errors.firstName} />
             <Field name="email" label="Email" placeholder="Adresse email" type="email" value={customer.email} onChange={handleChange} error={errors.email} />
@@ -90,7 +98,7 @@ const CustomerPage = (props) => {
                 <button type="submit" className="btn btn-success">Enregistrer</button>
                 <Link to="/customers" className="btn btn-link">Retour à la liste</Link>
             </div>
-        </form>
+        </form>}
     </> );
 }
  
